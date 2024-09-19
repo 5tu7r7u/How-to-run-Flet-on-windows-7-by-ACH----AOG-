@@ -1,58 +1,43 @@
-import flet as ft
+import flet as ft 
+import cv2 as cv 
+import base64
 
-def main(page: ft.Page):
-    # إعداد الصفحة
-    page.title = "مجتمع فليت مع راكوان"
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.bgcolor = "#f5f5f5"  # خلفية فاتحة جميلة
 
-    # نص العنوان الرئيسي
-    title_text = ft.Text(
-        "مجتمع فليت مع راكوان",
-        size=40,
-        weight=ft.FontWeight.BOLD,
-        color="#004aad",
-        font_family="Arial",
-        text_align=ft.TextAlign.CENTER,
-    )
+def l(i):
+    i=cv.resize(i,(700,1400))
+    _,im_arr=cv.imencode(".png",i)
+    im_b64=base64.b64encode(im_arr)
+    return im_b64.decode("utf-8")
 
-    # نص الوصف
-    description_text = ft.Text(
-        """
-        مرحبًا بكم في مجتمع فليت مع راكوان! هنا نعمل معًا لبناء تطبيقات قوية ومتجاوبة باستخدام Python ومكتبة Flet.
-        مجتمعنا يضم العديد من المطورين والمبرمجين المبدعين الذين يسعون دائمًا لمشاركة المعرفة والعمل على مشاريع مميزة.
-        """,
-        size=18,
-        color="#333333",
-        font_family="Verdana",
-        text_align=ft.TextAlign.CENTER,
-    )
 
-    # إنشاء Container لتصميم النصوص بشكل أفضل
-    content = ft.Container(
-        content=ft.Column(
-            [
-                title_text,
-                description_text,
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        ),
-        padding=ft.Padding(20, 20, 20, 20),  # استخدام padding بقيم محددة
-        #margin=ft.Margin.all(10),
-        width=600,
-        height=400,
-        border_radius=15,
-        bgcolor="#ffffff",  # لون خلفية النصوص
-        #border=ft.Border.all(color="#004aad", width=2),  # إطار خارجي
-        shadow=ft.BoxShadow(
-            blur_radius=10, spread_radius=2, color="#cccccc", offset=ft.Offset(5, 5)
-        ),  # تأثير الظل
-    )
 
-    # إضافة المحتوى إلى الصفحة
-    page.add(content)
 
-# تشغيل التطبيق
-ft.app(target=main)
+
+cap=cv.VideoCapture(0)
+def main(page:ft.Page):
+    page.window.width=350
+    page.window.left=700
+    page.window.top=1
+    global t
+    def p(e):
+        global t
+        t=True
+    img=ft.Image(height=700)
+    el=ft.ElevatedButton(text="go",on_click=p)
+
+    st=ft.Container(bgcolor=ft.colors.BLACK87,content=ft.Stack(controls=[img,ft.Column(controls=[ft.Column(height=600),ft.Row([el],alignment=ft.MainAxisAlignment.CENTER)],alignment=ft.CrossAxisAlignment.END)]))
+    page.add(st)
+    t=False
+    page.update()
+    while True:
+        _,im=cap.read()
+        im=cv.flip(im,1)
+        img.src_base64=l(im)
+        if t==True:
+            cv.imwrite("1.png",im)
+            print(12)
+            t=False
+        page.update()
+        cv.waitKey(1)
+
+ft.app(main)
